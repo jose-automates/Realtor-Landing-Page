@@ -1,149 +1,109 @@
-# Vanessa Bennett — Luxury Realtor Landing Page Template
+<h1 align="center">🏡 Vanessa Bennett — Luxury Realtor Landing Page</h1>
 
-**Version:** 3.0  
-**Elementor Version:** 3.35.7  
-**Theme:** Twenty Twenty-Five 1.4  
+<p align="center">
+  A static landing page with a <b>fully automated lead‑capture pipeline</b>.<br>
+  Someone fills the form → the lead is validated, de‑duplicated, saved, and the team is notified — in seconds, with zero backend to maintain.
+</p>
 
----
-
-## What's Included
-
-| File | Description |
-|------|-------------|
-| `Elementor-Kit.zip` | Full Elementor Kit (layout, global colors, fonts, settings) |
-| `static/index.html` | Standalone HTML version — opens directly in any browser |
-| `README.md` | This file |
+<p align="center">
+  🌐 <b>Live site:</b> <a href="https://jose-automates.github.io/Realtor-Landing-Page/">jose-automates.github.io/Realtor-Landing-Page</a>
+</p>
 
 ---
 
-## Requirements
+## ✨ What this repo is
 
-- WordPress (latest recommended)
-- Elementor **Free** (v3.20+)
-- Elementor **Pro** (v3.20+)
-- Theme: **Twenty Twenty-Five** (free, available in WordPress theme directory)
-- PHP 7.4 or higher
-- Permalinks set to **Post Name** (Settings → Permalinks)
-
----
-
-## Option A — Elementor Version (WordPress)
-
-### Step 1 — Prepare your WordPress site
-1. Install and activate **Elementor** and **Elementor Pro**
-2. Install and activate the **Twenty Twenty-Five** theme
-3. Go to **Settings → Permalinks** and select **Post Name** → Save Changes
-
-### Step 2 — Import the Kit
-1. Go to **Elementor → Tools** in your WordPress admin
-2. Find the **Import/Export Kit** option
-3. Upload `Elementor-Kit.zip`
-4. Make sure all options are checked (Site Settings, Templates, Content)
-5. Click **Import** and wait for it to complete (2–4 minutes)
-
-### Step 3 — Set your Homepage
-1. Go to **Settings → Reading**
-2. Set **"Your homepage displays"** to **A static page**
-3. Select **Vanessa Bennett** from the dropdown
-4. Click **Save Changes**
-
-### Step 4 — Regenerate Styles
-1. Go to **Elementor → Tools**
-2. Click **Regenerate CSS & Sync Library**
-3. Visit your homepage — it should now look exactly like the demo
-
-### Step 5 — Customize
-Open your page in the Elementor editor and replace:
-- **Name & headline** — Update "Vanessa Bennett" to your name
-- **Photos** — Replace all property listing images with your own
-- **Videos** — Replace the background and showcase videos with your own
-- **Contact form** — Connect to your preferred form service (see note below)
-- **Google Maps** — Update the embedded map address to your location
-- **Colors** — Edit via **Elementor → Site Settings → Global Colors**
-- **Fonts** — Edit via **Elementor → Site Settings → Global Fonts**
+| | |
+|---|---|
+| 📄 **Front‑end** | A static export of a WordPress/Elementor landing page. No server, no PHP, no database — just HTML/CSS/JS served by **GitHub Pages**. |
+| 🤖 **Back‑end** | There isn't one. All the "backend" work (validation, storage, notifications, emails) runs in an **n8n workflow** triggered by a webhook. |
+| 🔌 **The glue** | A small `<script>` injected into `index.html` that intercepts the form submit and POSTs the data to the n8n webhook. |
 
 ---
 
-## Option B — Static HTML Version
+## 🔄 The lead‑capture flow
 
-The static version requires **no WordPress, no server, and no plugins**.
-
-### Open directly in browser
-1. Extract the static ZIP folder
-2. Double-click `index.html` — it opens in your browser immediately
-
-### Deploy online (recommended)
-1. Go to [netlify.com](https://netlify.com) and create a free account
-2. Drag and drop the entire extracted folder onto the Netlify dashboard
-3. Your site is live instantly with a free URL
-
-### Windows one-click launcher
-A `start.bat` file is included. Double-click it to launch a local server and open the site automatically — useful if you want to test form behavior locally.
-
----
-
-## Contact Form
-
-The contact form is built with **Elementor Pro Forms**. To make it functional:
-
-- **Recommended:** Connect to [Formspree](https://formspree.io) or [Netlify Forms](https://docs.netlify.com/forms/setup/) (both free tiers available)
-- In the Elementor editor, click the form → Edit → Actions After Submit → Add your form endpoint
-
----
-
-## Fonts Used
-
-| Font | Usage |
-|------|-------|
-| Poppins | Headings, buttons, UI |
-| Open Sans | Hero titles |
-| Playfair Display | Accent headings, italic style |
-| Inter | Body text, descriptions |
-| Libre Baskerville | Section subtitles |
-| Roboto | Form fields |
-
-All fonts are loaded from Google Fonts and require an internet connection.
-
----
-
-## Replacing Images
-
-Images are **not included** in the Elementor Kit — you will need to replace them with your own. The template uses the following image slots:
-
-- **Hero background** — Full-width background image (`B1.webp`)
-- **Stats section** — Single feature image
-- **Property listings** — 6 property photos (recommended size: 800×600px)
-- **About section** — Agent portrait or property photo
-
----
-
-## Troubleshooting
-
-**Colors look wrong after import**  
-→ Go to Elementor → Tools → Regenerate CSS & Sync Library
-
-**Page looks unstyled**  
-→ Make sure Twenty Twenty-Five theme is active and Permalinks are set to Post Name
-
-**Import stuck or timed out**  
-→ Increase PHP limits in wp-config.php:
-```php
-define('WP_MEMORY_LIMIT', '512M');
-set_time_limit(300);
+```mermaid
+flowchart TD
+    A["🧑 Visitor fills the form<br/>name · email · phone"] --> B["📤 vb-lead-capture script<br/>POST to n8n webhook"]
+    B --> C{"🛡️ Check origin + honeypot"}
+    C -- "❌ wrong origin / bot" --> D["🚫 403 Forbidden"]
+    C -- "✅ legit" --> E["🧹 Normalize lead<br/>trim · lowercase email · timestamp"]
+    E --> F["🔎 Look up email in Google Sheet"]
+    F --> G{"📇 Email already saved?"}
+    G -- "🆕 New" --> H["📊 Append row to Google Sheets"]
+    H --> I["🔔 Slack #leads:<br/>“We received a new lead…”"]
+    I --> J["📧 Send welcome email to the lead"]
+    J --> K["✅ 200 OK → “Thank you!” on the page"]
+    G -- "♻️ Duplicate" --> L["🔔 Slack #leads:<br/>“We received a duplicated lead…”"]
+    L --> M["✅ 200 OK → “Thank you!” on the page<br/>(nothing saved, no email)"]
 ```
 
-**Images missing after import**  
-→ Replace images manually in the Elementor editor — this is expected behavior for Kit imports
+### Step by step
 
-**Form not submitting**  
-→ Connect the form to Formspree or Netlify Forms (see Contact Form section above)
+| # | Step | What happens |
+|---|------|--------------|
+| 1️⃣ | **Submit** | The `vb-lead-capture` script catches the form submit, stops Elementor's dead handler, and sends `name`, `email`, `phone` + a hidden honeypot field as a simple `POST`. |
+| 2️⃣ | **Gatekeeping** 🛡️ | n8n checks the request comes from the real site (`Origin` header) **and** the honeypot is empty. Bots and off‑site calls get a `403`. |
+| 3️⃣ | **Normalize** 🧹 | Name trimmed, email lower‑cased & trimmed, capture timestamp added, source tagged `Landing Page Vanessa Bennett`. |
+| 4️⃣ | **De‑duplicate** 🔎 | The email is checked against every row already in the sheet (case‑insensitive). |
+| 5️⃣a | **New lead** 🆕 | Row appended to Google Sheets → Slack message *"We received a new lead…"* → automated welcome email sent to the lead. |
+| 5️⃣b | **Duplicate** ♻️ | **Nothing is saved and no email is sent.** Slack still gets a *"We received a duplicated lead…"* message so the team knows the person came back. |
+| 6️⃣ | **Respond** ✅ | Either way the visitor sees *"Thank you, {name}! We received your details and will be in touch shortly."* |
 
 ---
 
-## Support
+## 🧩 Tech stack
 
-If you have questions or run into issues, please leave a comment on the product listing page. Include your WordPress version, Elementor version, and a description of the issue.
+| Piece | Role | Where |
+|------|------|-------|
+| 🐙 **GitHub Pages** | Hosts the static site | this repo, branch `main` |
+| ⚙️ **n8n** | Runs the automation workflow (webhook → logic → integrations) | self‑hosted |
+| 📊 **Google Sheets** | Source of truth for every lead (`Realtor Leads` → tab `leads`) | columns: `fecha_captura · nombre · email · telefono · fuente` |
+| 💬 **Slack** | Real‑time team notifications | channel `#leads` |
+| 📧 **Gmail** | Automated welcome email to the lead | — |
+
+**n8n workflow:** `Vanessa Bennett` — 12 nodes, with automatic retries (3×) on every external call (Sheets, Slack, Gmail).
 
 ---
 
-*Thank you for your purchase!*
+## 📁 Repo structure
+
+```
+├── index.html                ← the landing page (+ injected vb-lead-capture script)
+├── wp-content/ · wp-includes/ ← CSS, JS, fonts and images (WordPress export)
+├── .nojekyll                 ← tells GitHub Pages to serve files as‑is
+└── wp-sitemap*.xml           ← sitemap files from the export
+```
+
+> 💡 The lead‑capture logic lives in a single `<script id="vb-lead-capture">` block near the bottom of `index.html`.
+
+---
+
+## 🛠️ Editing the site
+
+It's plain static HTML — edit and push:
+
+```bash
+git add index.html
+git commit -m "Update landing page copy"
+git push origin main
+```
+
+GitHub Pages redeploys automatically in ~30 seconds.
+
+### ⚠️ If you ever re‑export the site from WordPress
+
+The `vb-lead-capture` script is **not** part of the WordPress design — it's injected here. After a fresh export you must re‑add it (a `<script id="vb-lead-capture">` before `</body>` in `index.html`) or the form will stop capturing leads.
+
+---
+
+## 📮 Contact form
+
+The form is **not** connected to WordPress, Formspree or Netlify. It talks directly to the n8n webhook via the injected script. To point it somewhere else, change the `ENDPOINT` constant inside the `vb-lead-capture` script.
+
+---
+
+## 🎨 Fonts used
+
+Poppins · Open Sans · Playfair Display · Inter · Libre Baskerville · Roboto — all loaded from Google Fonts.
