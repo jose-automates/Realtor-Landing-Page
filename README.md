@@ -21,38 +21,6 @@
 
 ---
 
-## 🔄 The lead‑capture flow
-
-```mermaid
-flowchart TD
-    A["🧑 Visitor fills the form<br/>name · email · phone"] --> B["📤 vb-lead-capture script<br/>POST to n8n webhook"]
-    B --> C{"🛡️ Check origin + honeypot"}
-    C -- "❌ wrong origin / bot" --> D["🚫 403 Forbidden"]
-    C -- "✅ legit" --> E["🧹 Normalize lead<br/>trim · lowercase email · timestamp"]
-    E --> F["🔎 Look up email in Google Sheet"]
-    F --> G{"📇 Email already saved?"}
-    G -- "🆕 New" --> H["📊 Append row to Google Sheets"]
-    H --> I["🔔 Slack #leads:<br/>“We received a new lead…”"]
-    I --> J["📧 Send welcome email to the lead"]
-    J --> K["✅ 200 OK → “Thank you!” on the page"]
-    G -- "♻️ Duplicate" --> L["🔔 Slack #leads:<br/>“We received a duplicated lead…”"]
-    L --> M["✅ 200 OK → “Thank you!” on the page<br/>(nothing saved, no email)"]
-```
-
-### Step by step
-
-| # | Step | What happens |
-|---|------|--------------|
-| 1️⃣ | **Submit** | The `vb-lead-capture` script catches the form submit, stops Elementor's dead handler, and sends `name`, `email`, `phone` + a hidden honeypot field as a simple `POST`. |
-| 2️⃣ | **Gatekeeping** 🛡️ | n8n checks the request comes from the real site (`Origin` header) **and** the honeypot is empty. Bots and off‑site calls get a `403`. |
-| 3️⃣ | **Normalize** 🧹 | Name trimmed, email lower‑cased & trimmed, capture timestamp added, source tagged `Landing Page Vanessa Bennett`. |
-| 4️⃣ | **De‑duplicate** 🔎 | The email is checked against every row already in the sheet (case‑insensitive). |
-| 5️⃣a | **New lead** 🆕 | Row appended to Google Sheets → Slack message *"We received a new lead…"* → automated welcome email sent to the lead. |
-| 5️⃣b | **Duplicate** ♻️ | **Nothing is saved and no email is sent.** Slack still gets a *"We received a duplicated lead…"* message so the team knows the person came back. |
-| 6️⃣ | **Respond** ✅ | Either way the visitor sees *"Thank you, {name}! We received your details and will be in touch shortly."* |
-
----
-
 ## 🧩 Tech stack
 
 | Piece | Role | Where |
